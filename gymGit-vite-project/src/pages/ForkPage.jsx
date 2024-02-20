@@ -3,45 +3,52 @@ import NavBar from "../fragments/Navbar";
 import Footer from "../fragments/Footer";
 import EditableWorkoutTable from "../components/EditableWorkoutTable";
 import workoutData from "../model/workoutData";
+import ScheduleList from "../components/ScheduleList";
+import ForkPageFunctions from "../model/ForkPageFunctions";
 
 class ForkPage extends Component {
   constructor(props) {
     super(props);
+    // Load schedule count from localStorage
+    const scheduleCount = parseInt(
+      localStorage.getItem("scheduleCount") || "0"
+    );
+
+    let originalSchedule = JSON.parse(localStorage.getItem("originalSchedule"));
+
+    // If original schedule is not found, set it from workoutData
+    if (!originalSchedule) {
+      originalSchedule = workoutData.map((day) => ({ ...day }));
+      localStorage.setItem("originalSchedule", JSON.stringify(originalSchedule));
+    }
+
     this.state = {
-      forkedData: workoutData.map((day) => ({ ...day })),
-      activeTab: "Monday", // Set the default active tab
+      forkedData: originalSchedule,
+      originalData: originalSchedule, // Store original workout data
+      activeTab: "Monday",
+      scheduleCount: scheduleCount,
+      currentScheduleIndex: null, // Index of the currently displayed schedule
     };
+
+    // Create an instance of ForkPageFunctions and pass the component reference
+    this.forkPageFunctions = new ForkPageFunctions(this);
   }
 
-  handleTabClick = (day) => {
-    this.setState({ activeTab: day });
-  };
-
   renderTabContent() {
-    const selectedDayData = this.state.forkedData.find(
-      (item) => item.day === this.state.activeTab
+    const { forkedData, activeTab } = this.state;
+  
+    if (!forkedData) {
+      return null; // Return null if forkedData is not yet initialized
+    }
+  
+    const selectedDayData = forkedData.find(
+      (item) => item.day === activeTab
     );
-    console.log("selectedDayData", selectedDayData);
+  
     return selectedDayData ? (
       <EditableWorkoutTable initialData={selectedDayData.data} />
     ) : null;
   }
-
-  handleSubmit = () => {
-    // Load existing schedules count
-    let scheduleCount = parseInt(localStorage.getItem("scheduleCount") || "0");
-
-    scheduleCount++;
-
-    localStorage.setItem(
-      `schedule${scheduleCount}`,
-      JSON.stringify(this.state.forkedData)
-    );
-
-    localStorage.setItem("scheduleCount", scheduleCount.toString());
-
-    alert(`Data saved as schedule${scheduleCount}!`);
-  };
 
   render() {
     return (
@@ -53,7 +60,7 @@ class ForkPage extends Component {
               <button
                 key={day.day}
                 className={`nav-link ${this.state.activeTab === day.day ? "active" : ""}`}
-                onClick={() => this.handleTabClick(day.day)}
+                onClick={() => this.forkPageFunctions.handleTabClick(day.day)}
               >
                 {day.day}
               </button>
@@ -63,16 +70,24 @@ class ForkPage extends Component {
         <div className="tab-content" id="nav-tabContent">
           {this.renderTabContent()}
         </div>
+
         <button
-          class="btn btn-primary"
-          type="submit"
-          onClick={this.handleSubmit}
+          className="btn btn-success me-2"
+          type="button"
+          onClick={this.forkPageFunctions.handleSave}
         >
           Save
         </button>
+        <button
+          className="btn btn-outline-success"
+          type="button"
+          onClick={this.forkPageFunctions.handleSubmit}
+        >
+          Save As New Schedule
+        </button>
 
-        <br></br>
-        <br></br>
+        <br />
+        <br />
         <button
           className="btn btn-primary"
           type="button"
@@ -80,27 +95,12 @@ class ForkPage extends Component {
           data-bs-target="#offcanvasRight"
           aria-controls="offcanvasRight"
         >
-          Toggle right offcanvas
+          View Schedule
         </button>
-        <div
-          className="offcanvas offcanvas-end"
-          tabIndex={-1}
-          id="offcanvasRight"
-          aria-labelledby="offcanvasRightLabel"
-        >
-          <div className="offcanvas-header">
-            <h5 className="offcanvas-title" id="offcanvasRightLabel">
-              Offcanvas right
-            </h5>
-            <button
-              type="button"
-              className="btn-close"
-              data-bs-dismiss="offcanvas"
-              aria-label="Close"
-            />
-          </div>
-          <div className="offcanvas-body">Schedule Lists</div>
-        </div>
+        <ScheduleList
+          scheduleCount={this.state.scheduleCount}
+          handleScheduleClick={this.forkPageFunctions.handleScheduleClick}
+        />
         <Footer />
       </>
     );
