@@ -4,15 +4,12 @@ import App from './App.jsx'
 import './index.css'
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import AboutPage from './pages/AboutPage.jsx';
+
 import ErrorPage from './pages/ErrorPage.jsx';
 import ForkPage from './pages/ForkPage.jsx';
 
 const router = createBrowserRouter([
-  {
-    path: "/about",
-    element: <AboutPage />,
-  },
+
   {
     path: "/forkpage",
     element: <ForkPage />,

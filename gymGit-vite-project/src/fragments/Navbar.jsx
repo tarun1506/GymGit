@@ -30,11 +30,6 @@ class NavBar extends React.Component {
                     Home
                   </Link>
                 </li>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/about">
-                    About
-                  </Link>
-                </li>
               </ul>
               <button
                 className="btn btn-outline-light"
